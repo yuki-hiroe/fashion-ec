@@ -18,10 +18,12 @@ export default function ProductDetailPage() {
     const [quantity, setQuantity] = useState(1);
     const {user} = useAuth();
 
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
     useEffect(() => {
         async function fetchProduct() {
             try {
-                const response = await fetch(`http://localhost:8000/api/products/${params.id}`, {
+                const response = await fetch(`${API_URL}/api/products/${params.id}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -100,8 +102,7 @@ export default function ProductDetailPage() {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(
-                `http://localhost:8000/api/products/${product.id}?token=${token}`,
+            const response = await fetch(`${API_URL}/api/products/${product.id}?token=${token}`,
                 {
                     method: 'DELETE'
                 }

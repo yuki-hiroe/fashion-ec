@@ -14,11 +14,13 @@ function HomePageContent() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
     useEffect(() => {
         async function fetchProducts() {
             try {
                 setLoading(true);
-                const response = await fetch('http://localhost:8000/api/products', {
+                const response = await fetch(`${API_URL}/api/products`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',

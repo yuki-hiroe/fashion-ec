@@ -12,11 +12,13 @@ export default function MyPage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
   useEffect(() => {
     const fetchMyProducts = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://localhost:8000/api/my-products?token=${token}`);
+        const response = await fetch(`${API_URL}/api/my-products?token=${token}`);
 
         if (response.ok) {
           const data = await response.json();

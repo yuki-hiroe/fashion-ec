@@ -14,13 +14,13 @@ SECRET_KEY = "your-secret-key-change-this-in-production"  # 本番環境では�
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
+def verify_password(plain_password, hashed_password):
     """パスワードの検証"""
-    return pwd_context.verify(plain_password, hashed_password)
+    return pwd_context.verify(plain_password[:72], hashed_password)
 
-def get_password_hash(password: str) -> str:
+def get_password_hash(password):
     """パスワードのハッシュ化"""
-    return pwd_context.hash(password)
+    return pwd_context.hash(password[:72])
 
 def get_user_by_email(db: Session, email: str):
     """メールアドレスでユーザーを取得"""
@@ -39,7 +39,7 @@ def authenticate_user(db: Session, username: str, password: str):
         return False
     return user
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(data: dict, expires_delta: timedelta = None):
     """アクセストークンの作成"""
     to_encode = data.copy()
     if expires_delta:

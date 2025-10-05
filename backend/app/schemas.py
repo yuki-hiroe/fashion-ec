@@ -76,7 +76,7 @@ class ProductCreate(BaseModel):
     description: Optional[str] = None
     price: float
     category_id: int
-    image_url: Optional[str] = None
+    image_url: Optional[str] = None #Base64も可
     stock: int = 1
 
 class ProductUpdate(BaseModel):

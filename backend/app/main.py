@@ -12,16 +12,15 @@ app = FastAPI(title="Fashion EC API")
 #-----------------------------------------------
 # CORS設定（Next.jsからアクセスできるように）
 #-----------------------------------------------
-
+# 本番環境用のCORS設定
 origins = [
     "http://localhost:3000",
-    "https://your-frontend-app.vercel.app",  # 後でフロントエンドのURLに変更
     os.getenv("FRONTEND_URL", "http://localhost:3000")
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # Next.jsのURL
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

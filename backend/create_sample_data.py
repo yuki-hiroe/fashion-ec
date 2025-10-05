@@ -36,19 +36,15 @@ db.commit()
 # カテゴリデータ
 categories_data = [
     {"name": "トップス", "slug": "tops"},
-    {"name": "ボトムス", "slug": "bottoms"},
     {"name": "アウター", "slug": "outerwear"},
-    {"name": "シューズ", "slug": "shoes"},
-    {"name": "ヘアス", "slug": "heads"},
     {"name": "パーカー", "slug": "hoodies"},
     {"name": "シャツ", "slug": "t-shirts"},
     {"name": "パンツ", "slug": "pants"},
-    {"name": "シャーペン", "slug": "sweaters"},
     {"name": "スカート", "slug": "skirts"},
-    {"name": "フリー", "slug": "free-gifts"},
-    {"name": "シャーロー", "slug": "swearers"},
-    {"name": "シャーディング", "slug": "shirts-dresses"},
+    {"name": "ヘアス", "slug": "heads"},
+    {"name": "シューズ", "slug": "shoes"},
     {"name": "アクセサリー", "slug": "accessories"},
+    {"name": "その他", "slug": "other"},
 ]
 
 categories = []
@@ -61,15 +57,6 @@ db.commit()
 
 # 商品データ(test_userが出品)
 products_data = [
-    {
-        "name": "ベーシックTシャツ",
-        "description": "シンプルで着回しやすい定番Tシャツ",
-        "price": 2980,
-        "category_id": 1,
-        "seller_id": test_user.id,
-        "image_url": "/images/basic-T-shirt.jpg",
-        "stock": 5
-    },
     {
         "name": "オーバーサイズパーカー",
         "description": "トレンドのオーバーサイズシルエット",

@@ -109,10 +109,15 @@ npm install -D tailwindcss @tailwindcss/postcss
 # 開発サーバー起動
 npm run dev
 3. アクセス
-
+ローカル環境
 フロントエンド: http://localhost:3000
 バックエンドAPI: http://localhost:8000
 API ドキュメント: http://localhost:8000/docs
+
+本番環境
+フロントエンド: https://fashion-ec-frontend-301a2019c2ed.herokuapp.com
+バックエンド: https://fashion-ec-backend-dd0fe6b83c36.herokuapp.com
+APIドキュメント: https://fashion-ec-backend-dd0fe6b83c36.herokuapp.com/docs
 
 デフォルトアカウント
 管理者

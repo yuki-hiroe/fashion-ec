@@ -11,12 +11,13 @@ export default function OrderCompletePage() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
   useEffect(() => {
     const fetchOrder = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(
-          `http://localhost:8000/api/orders/${params.id}?token=${token}`
+        const response = await fetch(`${API_URL}/api/orders/${params.id}?token=${token}`
         );
 
         if (response.ok) {

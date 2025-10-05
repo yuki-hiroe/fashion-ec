@@ -15,6 +15,8 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('products'); // products, users, orders
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
   useEffect(() => {
     if (!user) {
       router.push('/login');
@@ -36,7 +38,7 @@ export default function AdminPage() {
       const token = localStorage.getItem('token');
 
       // 全商品を取得
-      const productsRes = await fetch('http://localhost:8000/api/products');
+      const productsRes = await fetch(`${API_URL}/api/products`);
       const productsData = await productsRes.json();
       setProducts(productsData);
 
@@ -55,7 +57,7 @@ export default function AdminPage() {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `http://localhost:8000/api/products/${productId}?token=${token}`,
+        `${API_URL}/api/products/${productId}?token=${token}`,
         { method: 'DELETE' }
       );
 
@@ -87,7 +89,7 @@ export default function AdminPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-8 flex justify-between items-center">
           <h1 className="text-3xl font-bold text-gray-900">管理者画面</h1>
-          <Link href="/admin/products/new">
+          <Link href={`/admin/products/new`}>
             <button className="btn-primary">
               新規商品を登録
             </button>
@@ -168,7 +170,7 @@ export default function AdminPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <Link
-                        href={`/admin/products/edit`}
+                        href={`/admin/products/${product.id}/edit`}
                         className="text-blue-600 hover:text-blue-900 mr-4"
                       >
                         編集

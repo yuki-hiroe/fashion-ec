@@ -19,6 +19,8 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
   // ログインしていない場合はログインページへ
   if (!user) {
     router.push('/login');
@@ -68,7 +70,7 @@ export default function CheckoutPage() {
         }))
       };
 
-      const response = await fetch(`http://localhost:8000/api/orders/?token=${token}`, {
+      const response = await fetch(`${API_URL}/api/orders/?token=${token}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

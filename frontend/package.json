@@ -1,17 +1,23 @@
 {
   "name": "frontend",
   "version": "0.1.0",
+  "engines": {
+    "node": "20.x",
+    "npm": "10.x"
+  },
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "heroku-postbuild": "npm run build"
   },
   "dependencies": {
     "next": "15.5.4",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "lightningcss": "^1.21.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
