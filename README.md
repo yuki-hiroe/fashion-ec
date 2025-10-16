@@ -60,19 +60,20 @@ fashion-ec/
 │   └── venv/
 │
 └── frontend/                   # Next.jsフロントエンド
-    ├── app/
-    │   ├── page.js            # トップページ
-    │   ├── layout.js          # レイアウト
-    │   ├── globals.css        # グローバルCSS
-    │   ├── products/[id]/     # 商品詳細
-    │   ├── cart/              # カート
-    │   ├── checkout/          # 注文確認
-    │   ├── order-complete/    # 注文完了
-    │   ├── login/             # ログイン
-    │   ├── register/          # 新規登録
-    │   ├── mypage/            # マイページ
-    │   ├── sell/              # 出品（無効化済み）
-    │   └── admin/             # 管理者画面
+    ├── src/
+    │    └── app/
+    │        ├── page.js            # トップページ
+    │        ├── layout.js          # レイアウト
+    │        ├── globals.css        # グローバルCSS
+    │        ├── products/[id]/     # 商品詳細
+    │        ├── cart/              # カート
+    │        ├── checkout/          # 注文確認
+    │        ├── order-complete/    # 注文完了
+    │        ├── login/             # ログイン
+    │        ├── register/          # 新規登録
+    │        ├── mypage/            # マイページ
+    │        ├── sell/              # 出品（無効化済み）
+    │        └── admin/             # 管理者画面
     ├── components/
     │   ├── Header.js          # ヘッダー
     │   └── ProductCard.js     # 商品カード

@@ -13,7 +13,7 @@ export default function ProductDetailPage() {
     const router = useRouter();
     const {addToCart} = useCart();
     const [product, setProduct] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [dataLoading, setDataLoading] = useState(true);
     const [error, setError] = useState(null);
     const [quantity, setQuantity] = useState(1);
     const {user} = useAuth();
@@ -42,7 +42,7 @@ export default function ProductDetailPage() {
                 console.error('エラー:', error);
                 setError(error.message);
             } finally {
-                setLoading(false);
+                setDataLoading(false);
             }
         }
 
@@ -70,7 +70,7 @@ export default function ProductDetailPage() {
         }
     };
 
-    if (loading) {
+    if (dataLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-xl">読み込み中...</div>
@@ -85,7 +85,7 @@ export default function ProductDetailPage() {
                     <p className="text-xl text-red-600 mb-4">{error || '商品が見つかりません'}</p>
                     <button
                         onClick={() => router.push('/')}
-                        className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800"
+                        className="bg-black text-white px-6 py-2 rounded-lg cursor-pointer hover:bg-gray-800"
                     >
                         トップページに戻る
                     </button>
@@ -126,12 +126,26 @@ export default function ProductDetailPage() {
 
             {/* 戻るボタン */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+              <div className="flex gap-4">
                 <button
-                    onClick={() => router.push('/')}
-                    className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                  onClick={() => router.push('/')}
+                  className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
                 >
-                    <span>←</span> 商品一覧に戻る
+                  <span>←</span> 商品一覧
                 </button>
+
+                {product.seller && (
+                  <>
+                    <span className="text-gray-300">|</span>
+                    <button
+                      onClick={() => router.push(`/shop/${product.seller.id}`)}
+                      className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+                    >
+                      <span>←</span> {product.seller.username}'s Store
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
 
             {/* メインコンテンツ */}
@@ -140,11 +154,11 @@ export default function ProductDetailPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8">
                         {/* 商品画像 */}
                         <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
-                            <img
-                                src={product.image_url}
-                                alt={product.name}
-                                className="w-full h-full object-cover"
-                            />
+                          <img
+                              src={product.image_url || '/images/sold_out.jpg'}
+                              alt={product.name}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                          />
                         </div>
 
                         {/* 商品情報 */}
@@ -186,10 +200,14 @@ export default function ProductDetailPage() {
                             <div className="mb-6">
                                 <div className="flex items-center gap-2">
                                     <span className="text-sm font-semibold">在庫:</span>
-                                    {product.stock > 0 ? (
-                                        <span className="text-green-600 font-semibold">
-                                          {product.stock}個 在庫あり
-                                        </span>
+                                    {product.status === 'sold' ? (
+                                      <span className="text-red-600 font-semibold">
+                                        売り切れ
+                                      </span>
+                                    ) : product.stock > 0 ? (
+                                      <span className="text-green-600 font-semibold">
+                                        {product.stock}個 在庫あり
+                                      </span>
                                     ) : (
                                         <span className="text-red-600 font-semibold">
                                           在庫切れ
@@ -200,36 +218,40 @@ export default function ProductDetailPage() {
 
 
                             {/* 数量選択 */}
-                            <div className="mb-6">
+                            {product.status !== 'sold' && product.status !== 'deleted' && product.stock > 0 && (
+                              <div className="mb-6">
                                 <label className="text-sm font-semibold mb-2 block">数量</label>
                                 <div className="flex items-center gap-4">
-                                    <button
-                                        onClick={() => handleQuantityChange(-1)}
-                                        disabled={quantity <= 1}
-                                        className="w-10 h-10 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        −
-                                    </button>
-                                    <span className="text-xl font-semibold w-12 text-center">
-                                                  {quantity}
-                                                </span>
-                                    <button
-                                        onClick={() => handleQuantityChange(1)}
-                                        disabled={quantity >= product.stock}
-                                        className="w-10 h-10 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        ＋
-                                    </button>
+                                  <button
+                                    onClick={() => handleQuantityChange(-1)}
+                                    disabled={quantity <= 1}
+                                    className="w-10 h-10 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    −
+                                  </button>
+                                  <span className="text-xl font-semibold w-12 text-center">
+                                    {quantity}
+                                  </span>
+                                  <button
+                                    onClick={() => handleQuantityChange(1)}
+                                    disabled={quantity >= product.stock}
+                                    className="w-10 h-10 rounded-lg border border-gray-300 flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    ＋
+                                  </button>
                                 </div>
-                            </div>
+                              </div>
+                            )}
 
                             {/* カートに追加ボタン */}
                             <button
                                 onClick={handleAddToCart}
-                                disabled={product.stock === 0}
-                                className="w-full bg-black text-white py-4 rounded-lg font-semibold text-lg hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                                disabled={product.stock === 0 || product.status === 'sold' || product.status === 'deleted'}
+                                className="w-full bg-black text-white py-4 rounded-lg font-semibold text-lg cursor-pointer hover:bg-gray-800 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
                             >
-                                {product.stock > 0 ? 'カートに追加' : '在庫切れ'}
+                                {product.status === 'sold' ? '売り切れ' :
+                                    product.status === 'deleted' ? '販売終了' :
+                                        product.stock > 0 ? 'カートに追加' : '在庫切れ'}
                             </button>
                         </div>
                     </div>

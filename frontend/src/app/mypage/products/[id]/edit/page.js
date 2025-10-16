@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '../../../../../contexts/AuthContext';
-import Header from '../../../../../components/Header';
+import { useRouter, useParams } from 'next/navigation';
+import { useAuth } from '../../../../../../contexts/AuthContext';
+import Header from '../../../../../../components/Header';
 
-export default function AdminNewProductPage() {
+export default function AdminEditProductPage() {
   const router = useRouter();
+  const params = useParams();
   const { user } = useAuth();
   const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
@@ -15,24 +16,52 @@ export default function AdminNewProductPage() {
     price: '',
     category_id: '',
     image_url: '',
-    stock: 1,
+    stock: '',
     status: 'available'
   });
   const [imagePreview, setImagePreview] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState('');
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
-    if (!user || user.role !== 'admin') {
-      router.push('/');
+
+    if (!user) {
       return;
     }
-
+    // 全ユーザーがアクセス可能
+    fetchProduct();
     fetchCategories();
-  }, [user, router]);
+  }, [user, router, params.id]);
+
+  const fetchProduct = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/products/${params.id}`);
+      const data = await response.json();
+
+      setFormData({
+        name: data.name || '',
+        description: data.description || '',
+        price: data.price?.toString() || '',
+        category_id: data.category_id?.toString() || '',
+        image_url: data.image_url || '',
+        stock: data.stock?.toString() || '',
+        status: data.status || 'available'
+      });
+
+      if (data.image_url) {
+        setImagePreview(data.image_url);
+      }
+
+      setLoading(false);
+    } catch (error) {
+      console.error('商品取得エラー:', error);
+      setError('商品情報の取得に失敗しました');
+      setLoading(false);
+    }
+  };
 
   const fetchCategories = async () => {
     try {
@@ -54,45 +83,13 @@ export default function AdminNewProductPage() {
     }
 
     const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-
-        const maxSize = 800;
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-          if (width > maxSize) {
-            height = (height * maxSize) / width;
-            width = maxSize;
-          }
-        } else {
-          if (height > maxSize) {
-            width = (width * maxSize) / height;
-            height = maxSize;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        ctx.drawImage(img, 0, 0, width, height);
-
-        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-
-        console.log('元のサイズ:', file.size, 'bytes');
-        console.log('圧縮後のサイズ:', compressedBase64.length, 'characters');
-        console.log('現在のprice:', formData.price); // 追加
-
-        setFormData(prev => ({  // ← prevを使う
-          ...prev,
-          image_url: compressedBase64
-        }));
-        setImagePreview(compressedBase64);
-      };
-      img.src = event.target.result;
+    reader.onloadend = () => {
+      const base64String = reader.result;
+      setFormData({
+        ...formData,
+        image_url: base64String
+      });
+      setImagePreview(base64String);
     };
     reader.readAsDataURL(file);
   };
@@ -100,34 +97,50 @@ export default function AdminNewProductPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
+    setSubmitLoading(true);
 
     try {
       const token = localStorage.getItem('token');
 
-      const response = await fetch(`${API_URL}/api/products?token=${token}`, {
-        method: 'POST',
+      // 在庫数に応じてstatusを自動変更
+      let updatedStatus = formData.status;
+      const newStock = parseInt(formData.stock);
+
+      if (newStock > 0 && formData.status === 'sold') {
+        // 在庫が増えて、現在soldの場合 → availableに変更
+        updatedStatus = 'available';
+      } else if (newStock === 0 && formData.status === 'available') {
+        // 在庫が0になって、現在availableの場合 → soldに変更
+        updatedStatus = 'sold';
+      }
+
+      const response = await fetch(`${API_URL}/api/products/${params.id}?token=${token}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          ...formData,
+          // ...formData,
+          name: formData.name,
+          description: formData.description,
           price: parseFloat(formData.price),
           category_id: parseInt(formData.category_id),
-          stock: parseInt(formData.stock)
+          image_url: formData.image_url,
+          stock: newStock,
+          status: updatedStatus
         })
       });
 
       if (!response.ok) {
-        throw new Error('商品の登録に失敗しました');
+        throw new Error('商品の更新に失敗しました');
       }
 
-      alert('商品を登録しました');
+      alert('商品を更新しました');
       router.push('/admin');
     } catch (err) {
       setError(err.message);
     } finally {
-      setLoading(false);
+      setSubmitLoading(false);
     }
   };
 
@@ -138,8 +151,12 @@ export default function AdminNewProductPage() {
     });
   };
 
-  if (!user || user.role !== 'admin') {
-    return null;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl">読み込み中...</div>
+      </div>
+    );
   }
 
   return (
@@ -148,7 +165,7 @@ export default function AdminNewProductPage() {
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="bg-white rounded-xl shadow-lg p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-8">新規商品登録</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-8">商品編集</h1>
 
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
@@ -186,7 +203,7 @@ export default function AdminNewProductPage() {
               />
             </div>
 
-            {/* 商品価格 */}
+            {/* 価格 */}
             <div className="mb-6">
               <label className="block text-gray-700 text-sm font-bold mb-2">
                 価格 <span className="text-red-500">*</span>
@@ -200,7 +217,6 @@ export default function AdminNewProductPage() {
                   onChange={handleChange}
                   className="input-field pl-8"
                   min="1"
-                  step="1"
                   required
                 />
               </div>
@@ -227,7 +243,7 @@ export default function AdminNewProductPage() {
               </select>
             </div>
 
-            {/* 画像アップロード */}
+            {/* 商品画像 */}
             <div className="mb-6">
               <label className="block text-gray-700 text-sm font-bold mb-2">
                 商品画像
@@ -239,13 +255,12 @@ export default function AdminNewProductPage() {
                 className="input-field"
               />
               <p className="text-sm text-gray-500 mt-1">
-                JPG, PNG, GIF形式（最大5MB）
+                新しい画像を選択しない場合は、現在の画像が維持されます
               </p>
 
-              {/* プレビュー */}
               {imagePreview && (
                 <div className="mt-4">
-                  <p className="text-sm text-gray-600 mb-2">プレビュー:</p>
+                  <p className="text-sm text-gray-600 mb-2">現在の画像:</p>
                   <img
                     src={imagePreview}
                     alt="プレビュー"
@@ -266,7 +281,7 @@ export default function AdminNewProductPage() {
                 value={formData.stock}
                 onChange={handleChange}
                 className="input-field"
-                min="1"
+                min="0"
                 required
               />
             </div>
@@ -275,10 +290,10 @@ export default function AdminNewProductPage() {
             <div className="flex gap-4">
               <button
                 type="submit"
-                disabled={loading}
+                disabled={submitLoading}
                 className="flex-1 btn-primary"
               >
-                {loading ? '登録中...' : '商品を登録'}
+                {submitLoading ? '更新中...' : '更新'}
               </button>
               <button
                 type="button"

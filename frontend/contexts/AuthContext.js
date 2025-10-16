@@ -46,30 +46,47 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const login = async (username, password) => {
-    try {
-      const formData = new FormData();
-      formData.append('username', username);
-      formData.append('password', password);
+    const login = async (username, password) => {
+      try {
+        const formBody = new URLSearchParams();
+        formBody.append('username', username);
+        formBody.append('password', password);
 
-      const response = await fetch(`${API_URL}/api/auth/login`, {
-        method: 'POST',
-        body: formData
-      });
+        const response = await fetch(`${API_URL}/api/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: formBody.toString(),
+        });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'ログインに失敗しました');
+        if (response.ok) {
+          const data = await response.json();
+          localStorage.setItem('token', data.access_token);
+
+          setUser({
+            username: data.username,
+            role: data.role,
+            id: data.user_id
+          });
+
+          return {
+            success: true,
+            role: data.role  // roleを返す
+          };
+        } else {
+          const errorData = await response.json();
+          return {
+            success: false,
+            error: errorData.detail || 'ログインに失敗しました'
+          };
+        }
+      } catch (error) {
+        return {
+          success: false,
+          error: 'ログインに失敗しました'
+        };
       }
-
-      const data = await response.json();
-      localStorage.setItem('token', data.access_token);
-
-      await checkAuth();
-      return { success: true };
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
   };
 
   const register = async (email, username, password) => {
@@ -95,8 +112,7 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     localStorage.removeItem('token');
-    setUser(null);
-    router.push('/');
+    window.location.href = '/';
   };
 
   return (

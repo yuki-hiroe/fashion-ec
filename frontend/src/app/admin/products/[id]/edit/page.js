@@ -16,7 +16,8 @@ export default function AdminEditProductPage() {
     price: '',
     category_id: '',
     image_url: '',
-    stock: ''
+    stock: '',
+    status: 'available'
   });
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -46,12 +47,13 @@ export default function AdminEditProductPage() {
       const data = await response.json();
 
       setFormData({
-        name: data.name,
+        name: data.name || '',
         description: data.description || '',
         price: data.price?.toString() || '',
         category_id: data.category_id?.toString() || '',
         image_url: data.image_url || '',
         stock: data.stock?.toString() || '',
+        status: data.status || 'available'
       });
 
       if (data.image_url) {
@@ -111,10 +113,14 @@ export default function AdminEditProductPage() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          ...formData,
+          // ...formData,
+          name: formData.name,
+          description: formData.description,
           price: parseFloat(formData.price),
           category_id: parseInt(formData.category_id),
-          stock: parseInt(formData.stock)
+          image_url: formData.image_url,
+          stock: parseInt(formData.stock),
+          status: formData.status
         })
       });
 

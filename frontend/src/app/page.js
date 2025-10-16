@@ -1,11 +1,15 @@
 'use client';
 
 import {useState, useEffect, Suspense} from 'react';
-import {useSearchParams} from 'next/navigation';
+import {useSearchParams, useRouter} from 'next/navigation';
+import { useAuth } from '../../contexts/AuthContext';
 import ProductCard from '../../components/ProductCard';
 import Header from '../../components/Header';
 
+
 function HomePageContent() {
+    const router = useRouter();
+    const { user, loading: authLoading } = useAuth();
     const searchParams = useSearchParams();
     const category = searchParams.get('category');
     const priceFilter = searchParams.get('price');
@@ -17,21 +21,13 @@ function HomePageContent() {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
     useEffect(() => {
+
         async function fetchProducts() {
             try {
                 setLoading(true);
                 const response = await fetch(`${API_URL}/api/products`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
                     cache: 'no-store'
                 });
-
-                if (!response.ok) {
-                    throw new Error('商品データの取得に失敗しました');
-                }
-
                 const data = await response.json();
                 setProducts(data);
             } catch (error) {
@@ -43,10 +39,11 @@ function HomePageContent() {
         }
 
         fetchProducts();
-    }, [category, priceFilter]);
+    }, [API_URL]);
 
     // カテゴリと価格でフィルタリング
     const filteredProducts = products.filter(product => {
+
         // カテゴリフィルター
         if (category && product.category?.slug !== category) {
             return false;
@@ -118,7 +115,7 @@ function HomePageContent() {
                         </p>
                         {(category || priceFilter) && (
                             <button
-                                onClick={() => window.location.href = '/'}
+                                onClick={() => router.push('/')}
                                 className="text-sm text-blue-600 hover:text-blue-700 underline font-semibold"
                             >
                                 フィルターをリセット
@@ -142,7 +139,7 @@ function HomePageContent() {
                             条件に一致する商品がありません
                         </p>
                         <button
-                            onClick={() => window.location.href = '/'}
+                            onClick={() => router.push('/')}
                             className="btn-primary"
                         >
                             フィルターをリセット
@@ -158,9 +155,13 @@ function HomePageContent() {
 function getCategoryName(slug) {
     const categories = {
         'tops': 'トップス',
-        'bottoms': 'ボトムス',
         'outerwear': 'アウター',
+        'hoodies': 'パーカー',
+        'pants': 'パンツ',
+        'skirts': 'スカート',
+        'shoes': 'シューズ',
         'accessories': 'アクセサリー',
+        'other': 'その他'
     };
     return categories[slug] || 'カテゴリ';
 }

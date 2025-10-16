@@ -38,6 +38,18 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    role: Optional[str] = "user"
+
+class UserResponse(UserBase):
+    id: int
+    hashed_password: str
+    role: str
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
 
 
 class User(UserBase):
@@ -93,18 +105,18 @@ class ProductUpdate(BaseModel):
 class ProductResponse(BaseModel):
     id: int
     name: str
-    description: Optional[str]
+    description: Optional[str] = None
     price: float
     category_id: int
     seller_id: int
-    image_url: Optional[str]
+    image_url: Optional[str] = None
     stock: int
     is_active: bool
     status: str
     created_at: datetime
     updated_at: datetime
     category: Optional[Category] = None
-    seller: Optional[User] = None
+    seller: Optional[UserResponse]
 
     class Config:
         from_attributes = True
@@ -119,6 +131,14 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: Optional[str] = None
+    
+# ログインレスポンス用（新規追加）
+class LoginResponse(BaseModel):
+    access_token: str
+    token_type: str
+    username: str
+    role: str
+    user_id: int
 
 # -------------------------------------------------------
 # 注文アイテム

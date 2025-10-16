@@ -35,8 +35,8 @@ class Product(Base):
     price = Column(Float, nullable=False) #値段
     category_id = Column(Integer, ForeignKey("categories.id"))
     seller_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    image_url = Column(String(500))
-    stock = Column(Integer, default=0) #在庫管理
+    image_url = Column(Text)
+    stock = Column(Integer, default=1) #在庫管理
     is_active = Column(Boolean, default=True)
     status = Column(String(50), default="available")  # available, sold, deleted
     created_at = Column(DateTime, default=datetime.utcnow)

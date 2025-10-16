@@ -22,7 +22,12 @@ export default function LoginPage() {
     const result = await login(username, password);
 
     if (result.success) {
-      router.push('/');
+
+      if (result.role === 'admin') {
+        window.location.href = '/admin';
+      } else {
+        window.location.href = '/mypage';
+      }
     } else {
       setError(result.error);
     }

@@ -42,6 +42,28 @@ def create_order(
     # ユーザー認証
     current_user = get_current_user(token, db)
 
+    # 在庫チェックと減算
+    for item in order.items:
+        product = db.query(models.Product).filter(
+            models.Product.id == item.product_id
+        ).first()
+
+        if not product:
+            raise HTTPException(status_code=404, detail=f"商品ID {item.product_id} が見つかりません")
+
+        if product.stock < item.quantity:
+            raise HTTPException(
+                status_code=400,
+                detail=f"{product.name}の在庫が不足しています（在庫: {product.stock}個）"
+            )
+
+        # 在庫を減らす
+        product.stock -= item.quantity
+
+        # 在庫が0になったらstatusを更新
+        if product.stock == 0:
+            product.status = "sold"
+
     # 合計金額を計算
     total_amount = sum(item.price * item.quantity for item in order.items)
 

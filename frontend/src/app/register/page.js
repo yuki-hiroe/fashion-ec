@@ -8,7 +8,7 @@ import Link from 'next/link';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register } = useAuth();
+  const { register, login } = useAuth();
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -19,6 +19,9 @@ export default function RegisterPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
+
+    const result = await register(email, username, password);
 
     if (password !== confirmPassword) {
       setError('パスワードが一致しません');
@@ -30,17 +33,32 @@ export default function RegisterPage() {
       return;
     }
 
-    setLoading(true);
-
-    const result = await register(email, username, password);
-
     if (result.success) {
-      alert('登録が完了しました。ログインしてください。');
-      router.push('/login');
+      // 登録成功後、自動的にログイン
+      const loginResult = await login(username, password);
+  
+      if (loginResult.success) {
+        alert('登録が完了しました！');
+        window.location.href = '/mypage';  // マイページに遷移
+      } else {
+        // ログイン失敗の場合はログインページへ
+        alert('ログインに失敗しました。ログインページからログインしてください。');
+        router.push('/login');
+      }
     } else {
-      setError(result.error);
+      // 登録失敗
+      if (result.error.includes('既に使用') || 
+        result.error.includes('already exists') || 
+        result.error.includes('既に登録')) {
+        alert('このユーザー名またはメールアドレスは既に登録されています。ログインしてください。');
+      // ログインページへ
+        router.push('/login');
+      } else {
+        // その他のエラー
+        setError(result.error);
+      }
     }
-
+  
     setLoading(false);
   };
 

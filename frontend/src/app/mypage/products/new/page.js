@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import Header from '../../../../../components/Header';
 
-export default function AdminNewProductPage() {
+export default function NewProductPage() {
   const router = useRouter();
   const { user } = useAuth();
   const [categories, setCategories] = useState([]);
@@ -16,7 +16,6 @@ export default function AdminNewProductPage() {
     category_id: '',
     image_url: '',
     stock: 1,
-    status: 'available'
   });
   const [imagePreview, setImagePreview] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -26,8 +25,7 @@ export default function AdminNewProductPage() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
   useEffect(() => {
-    if (!user || user.role !== 'admin') {
-      router.push('/');
+    if (!user) {
       return;
     }
 
@@ -123,7 +121,7 @@ export default function AdminNewProductPage() {
       }
 
       alert('商品を登録しました');
-      router.push('/admin');
+      router.push('/mypage');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -138,7 +136,7 @@ export default function AdminNewProductPage() {
     });
   };
 
-  if (!user || user.role !== 'admin') {
+  if (!user) {
     return null;
   }
 
@@ -282,7 +280,7 @@ export default function AdminNewProductPage() {
               </button>
               <button
                 type="button"
-                onClick={() => router.push('/admin')}
+                onClick={() => router.push('/mypage')}
                 className="flex-1 btn-secondary"
               >
                 キャンセル

@@ -75,7 +75,7 @@ export default function CartPage() {
                                         </p>
 
                                         {/* 数量変更 */}
-                                        <div className="flex items-center gap-4 mt-4">
+                                        <div className="flex items-center gap-4 mt-4 flex-wrap">
                                             <div className="flex items-center gap-2">
                                                 <button
                                                     onClick={() => updateQuantity(item.id, item.quantity - 1)}
@@ -93,8 +93,12 @@ export default function CartPage() {
                                             </div>
 
                                             <button
-                                                onClick={() => removeFromCart(item.id)}
-                                                className="text-red-600 hover:text-red-700 text-sm"
+                                                onClick={() => {
+                                                    if (confirm('カートから削除しますか？')) {
+                                                        removeFromCart(item.id);
+                                                    }
+                                                }}
+                                                className="text-red-600 cursor-pointer hover:text-red-700 text-sm ml-4"
                                             >
                                                 削除
                                             </button>
@@ -114,54 +118,49 @@ export default function CartPage() {
 
                     {/* 注文サマリー */}
                     <div className="lg:col-span-1">
-                        <div
-                            className="bg-gradient-to-br from-gray-900 to-gray-800 text-white rounded-xl shadow-2xl p-8 sticky top-24">
-                            <h2 className="text-2xl font-bold mb-6">注文サマリー</h2>
-
-                            <div className="space-y-4 mb-8">
-                                <div className="flex justify-between text-lg">
-                                    <span className="text-gray-300">小計</span>
-                                    <span className="font-bold">
-                                      ¥{getTotalPrice().toLocaleString()}
-                                    </span>
-                                </div>
-                                <div className="flex justify-between text-lg">
-                                    <span className="text-gray-300">送料</span>
-                                    <span className="font-bold">¥500</span>
-                                </div>
-                                <div className="border-t border-gray-700 pt-4 flex justify-between text-2xl font-black">
-                                    <span>合計</span>
-                                    <span className="text-yellow-400">
-                                      ¥{(getTotalPrice() + 500).toLocaleString()}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <Link href="/checkout" className="block mb-4">
-                                <button
-                                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-4 rounded-lg font-bold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-300">
-                                    購入手続きへ
-                                </button>
-                            </Link>
-
-                            <Link href="/">
-                                <button
-                                    className="w-full bg-white text-black py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-                                    買い物を続ける
-                                </button>
-                            </Link>
-
-                            <button
-                                onClick={() => {
-                                    if (confirm('カートを空にしますか？')) {
-                                        clearCart();
-                                    }
-                                }}
-                                className="w-full text-red-400 hover:text-red-300 text-sm mt-6 font-semibold"
-                            >
-                                カートを空にする
-                            </button>
+                      <div className="bg-white rounded-lg shadow p-6 sticky top-24">
+                        <h2 className="text-xl font-bold mb-4">注文サマリー</h2>
+                    
+                        <div className="space-y-3 mb-6">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">小計</span>
+                            <span className="font-semibold">
+                              ¥{getTotalPrice().toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">送料</span>
+                            <span className="font-semibold text-gray-600">0</span>
+                          </div>
+                          <div className="border-t pt-3 flex justify-between text-lg font-bold">
+                            <span>合計</span>
+                            <span>¥{getTotalPrice().toLocaleString()}</span>
+                          </div>
                         </div>
+                    
+                        <Link href="/checkout" className="block mb-3">
+                          <button className="w-full bg-black text-white py-3 rounded-lg font-semibold cursor-pointer hover:bg-gray-800 transition-colors">
+                            購入手続きへ
+                          </button>
+                        </Link>
+                    
+                        <Link href="/" className="block mb-4">
+                          <button className="w-full border border-gray-300 py-3 rounded-lg font-semibold cursor-pointer hover:bg-gray-50 transition-colors">
+                            買い物を続ける
+                          </button>
+                        </Link>
+                    
+                        <button
+                          onClick={() => {
+                            if (confirm('カートを空にしますか？')) {
+                              clearCart();
+                            }
+                          }}
+                          className="w-full text-red-600 cursor-pointer hover:text-red-700 text-sm font-semibold"
+                        >
+                          カートを空にする
+                        </button>
+                      </div>
                     </div>
                 </div>
             </main>

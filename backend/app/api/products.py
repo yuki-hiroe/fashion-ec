@@ -4,6 +4,7 @@ from typing import List
 from .. import models, schemas, auth
 from ..database import get_db
 from jose import JWTError, jwt
+from sqlalchemy.orm import joinedload
 
 router = APIRouter()
 
@@ -31,20 +32,50 @@ def get_current_user(token: str, db: Session):
 #-------------------------------------
 # 商品一覧取得
 #-------------------------------------
-@router.get("/products", response_model=List[schemas.Product])
-def get_products(skip: int = 0, limit: int = 20, db: Session = Depends(get_db)):
-    products = db.query(models.Product).filter(models.Product.is_active == True).offset(skip).limit(limit).all()
+@router.get("/products", response_model=List[schemas.ProductResponse])
+def get_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    products = db.query(models.Product).options(
+        joinedload(models.Product.seller),
+        joinedload(models.Product.category)
+    ).filter(
+        models.Product.is_active == True,
+        models.Product.status != "deleted"  # 削除済みのみ除外、soldは表示
+    ).offset(skip).limit(limit).all()
     return products
 
 #-------------------------------------
 # 商品詳細取得
 #-------------------------------------
-@router.get("/products/{product_id}", response_model=schemas.Product)
+@router.get("/products/{product_id}", response_model=schemas.ProductResponse)
 def get_product(product_id: int, db: Session = Depends(get_db)):
-    product = db.query(models.Product).filter(models.Product.id == product_id).first()
-    if product is None:
-        raise HTTPException(status_code=404, detail="Product not found")
+    """商品詳細を取得"""
+    product = db.query(models.Product).options(
+        joinedload(models.Product.seller),  # sellerを明示的にロード
+        joinedload(models.Product.category)
+    ).filter(models.Product.id == product_id).first()
+
+    if not product:
+        raise HTTPException(status_code=404, detail="商品が見つかりません")
+
     return product
+
+#-------------------------------------
+# 特定ユーザーの商品一覧取得
+#-------------------------------------
+@router.get("/{user_id}/products", response_model=List[schemas.ProductResponse])
+def get_user_products(user_id: int, db: Session = Depends(get_db)):
+    """特定ユーザーの商品を取得（売却済みも含む）"""
+    from sqlalchemy.orm import joinedload
+
+    products = db.query(models.Product).options(
+        joinedload(models.Product.seller),
+        joinedload(models.Product.category)
+    ).filter(
+        models.Product.seller_id == user_id,
+        models.Product.status != "deleted",  # 削除済みのみ除外
+        models.Product.is_active == True
+    ).all()
+    return products
 
 
 # 商品出品
@@ -59,7 +90,9 @@ def create_product(
 
     db_product = models.Product(
         **product.dict(),
-        seller_id=current_user.id
+        seller_id=current_user.id,
+        status="available",
+        is_active=True
     )
     db.add(db_product)
     db.commit()
@@ -75,7 +108,8 @@ def get_my_products(token: str, db: Session = Depends(get_db)):
     current_user = get_current_user(token, db)
 
     products = db.query(models.Product).filter(
-        models.Product.seller_id == current_user.id
+        models.Product.seller_id == current_user.id,
+        models.Product.status != "deleted"
     ).order_by(models.Product.created_at.desc()).all()
 
     return products

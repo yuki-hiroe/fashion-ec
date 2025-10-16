@@ -31,12 +31,26 @@ def get_user_by_username(db: Session, username: str):
     return db.query(models.User).filter(models.User.username == username).first()
 
 def authenticate_user(db: Session, username: str, password: str):
-    """ユーザー認証"""
-    user = get_user_by_username(db, username)
+    """ユーザー認証（usernameまたはemailで検索）"""
+    print(f"[DEBUG] ログイン試行: username/email={username}")
+    # usernameまたはemailで検索
+    user = db.query(models.User).filter(
+        (models.User.username == username) |
+        (models.User.email == username)
+    ).first()
+
+    print(f"[DEBUG] ユーザー検索結果: {user}")
+    print(f"[DEBUG] user.username={user.username if user else 'None'}")
+    print(f"[DEBUG] user.email={user.email if user else 'None'}")
+
     if not user:
+        print("[DEBUG] ユーザーが見つかりません")
         return False
-    if not verify_password(password, user.hashed_password):
+    password_check = verify_password(password, user.hashed_password)
+    print(f"[DEBUG] パスワード検証結果: {password_check}")
+    if not password_check:
         return False
+    print("[DEBUG] 認証成功")
     return user
 
 def create_access_token(data: dict, expires_delta: timedelta = None):
@@ -62,3 +76,22 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.commit()
     db.refresh(db_user)
     return db_user
+
+# ユーザー一覧を取得して表示
+def get_current_user(token: str, db: Session):
+    """トークンから現在のユーザーを取得"""
+    from jose import JWTError, jwt
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=401, detail="認証情報が無効です")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="認証情報が無効です")
+
+    user = get_user_by_username(db, username=username)
+    if user is None:
+        raise HTTPException(status_code=401, detail="ユーザーが見つかりません")
+
+    return user
